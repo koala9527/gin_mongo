@@ -1,37 +1,31 @@
 package Services
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
-	"testing"
-    "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"gin_mongodb/config"
+	"gin_mongodb/util"
 	"log"
+	"testing"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Test struct {
-    Id int `json:"id"` 
-    Testcol string `json:"testcol"`
+	Id      int    `json:"id"`
+	Testcol string `json:"testcol"`
 }
 
-func (this *Test) Insert() (id int, err error) {
-    insert
-    return 1,nil
-}
-const (
-	URL = "127.0.0.1:27017"
-)
+var URL = "127.0.0.1:27017"
 
-func insert(p Person, col Collection) {
-	session, err := mgo.Dial(URL)
+func init() {
+	env, err := config.Get()
 	if err != nil {
-		panic(err)
+		log.Fatal("env read error : ", err)
 	}
-	defer session.Close()
-	c := session.DB(col.DB).C(col.Name)
-	err = c.Insert(p)
-	if err != nil {
-		log.Fatal(err)
-	}
+	URL = env.MONGODB_URL
 }
 
 func findByName(name string, col Collection) Person {
@@ -49,7 +43,6 @@ func findByName(name string, col Collection) Person {
 	}
 	return result
 }
-
 
 func update(p Person, col Collection) {
 	session, err := mgo.Dial(URL)
@@ -86,15 +79,147 @@ type Collection struct {
 var col = Collection{"testDB", "contacts"}
 var p = Person{"Jack_Green", "9987650"}
 
+func insert(p Person, col Collection) {
+	session, err := mgo.Dial(URL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	c := session.DB(col.DB).C(col.Name)
+	err = c.Insert(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // C create/insert
-func TestInsert(t *testing.T) {
+func TestInsert() {
 	insert(p, col)
 	pb := findByName(p.Name, col)
-	if pb.Name != p.Name || pb.Phone != p.Phone {
-		t.Error("insert failed")
-	}
+
 	fmt.Println("Insert Result")
 	fmt.Println(pb)
+}
+
+func Log(live_id string, insert_data string, msg_type string) (data interface{}, err error) {
+
+	fmt.Println(live_id)
+	fmt.Println(msg_type)
+	if err != nil {
+		return err, errors.New("文件下载失败")
+	}
+	session, err := mgo.Dial(URL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	c := session.DB(col.DB).C(live_id)
+	if msg_type == "WebcastChatMessage" {
+		fmt.Println("等于")
+		insert_obj := util.WebcastMemberMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastMemberMessage" {
+		insert_obj := util.WebcastMemberMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastSocialMessage" {
+		insert_obj := util.WebcastSocialMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastLikeMessage" {
+		insert_obj := util.WebcastLikeMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastRoomUserSeqMessage" {
+		insert_obj := util.WebcastRoomUserSeqMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastGiftMessage" {
+		insert_obj := util.WebcastGiftMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else if msg_type == "WebcastRoomIntroMessage" {
+		insert_obj := util.WebcastRoomIntroMessage{}
+		err = json.Unmarshal([]byte(insert_data), &insert_obj)
+		if err != nil {
+			fmt.Println(err)
+			return "插入失败。解码失败", nil
+		}
+		err = c.Insert(insert_obj)
+		if err != nil {
+			log.Fatal(err)
+			return "插入失败。mongoDb插入失败", nil
+
+		}
+		return "插入成功", nil
+	} else {
+		return "插入失败，没有找到这个类型", nil
+	}
+}
+
+func detail_insert() {
+
 }
 
 // R read/find

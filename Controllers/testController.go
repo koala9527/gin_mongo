@@ -2,32 +2,25 @@ package Controllers
 
 import (
 	"gin_mongodb/Services"
-	"net/http"
+	"gin_mongodb/global"
 
 	"github.com/gin-gonic/gin"
 )
 
 func TestInsert(c *gin.Context) {
-	var testService Services.Test
+	Services.TestInsert()
+}
 
-	err := c.ShouldBindJSON(&testService)
+func Log(c *gin.Context) {
+
+	live_id := c.PostForm("live_id")
+	insert_data := c.PostForm("data")
+	msg_type := c.PostForm("msg_type")
+	result := global.NewResult(c)
+	data, err := Services.Log(live_id, insert_data, msg_type)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		result.Error(5201, err.Error(), data)
 		return
 	}
-
-	id, err := testService.Insert()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "Insert() error!",
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"code":    1,
-		"message": "success",
-		"data":    id,
-	})
-
+	result.Success(data)
 }
